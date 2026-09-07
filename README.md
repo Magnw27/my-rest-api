@@ -1,6 +1,14 @@
 # My REST API
 
-A modular, extensible REST API built with **TypeScript + Hono**, designed to grow into a large public API platform.
+A modular, extensible REST API built with **TypeScript + Hono**, designed to grow into a large public API platform and deploy cleanly to Vercel.
+
+## Production
+
+The intended Vercel project name is **`api-lip`**, so after importing this repository into Vercel, its default production URL can be:
+
+`https://api-lip.vercel.app`
+
+Vercel assigns the `vercel.app` production domain from the project name; the exact URL is confirmed by Vercel after the project is created/deployed. citeturn0search8
 
 ## Features
 
@@ -12,7 +20,7 @@ A modular, extensible REST API built with **TypeScript + Hono**, designed to gro
 - CORS, request IDs and centralized error handling
 - Zod validation for external input
 - Unit/integration tests with Vitest
-- Vercel-ready serverless entrypoint
+- Vercel serverless entrypoint
 - Clean route/data/util separation for future database and authentication layers
 
 ## Stack
@@ -22,11 +30,13 @@ A modular, extensible REST API built with **TypeScript + Hono**, designed to gro
 - Zod
 - Vitest
 - Node.js 20+
-- Vercel
+- Vercel Functions
 
 ## API
 
-Base URL locally: `http://localhost:3000`
+### Production
+
+`https://api-lip.vercel.app`
 
 ### System
 
@@ -66,6 +76,33 @@ Base URL locally: `http://localhost:3000`
 
 Weather is fetched live from Open-Meteo. No API key is required for the current implementation.
 
+## Deploy to Vercel
+
+This repository already contains a Vercel entrypoint at `api/index.ts` and a `vercel.json` configured for the `api-lip` project name. Vercel officially supports Hono deployments and can deploy from Git or the Vercel CLI. citeturn0search0turn0search1
+
+### Recommended: GitHub import
+
+1. Open Vercel and choose **New Project**.
+2. Import `Magnw27/my-rest-api`.
+3. Set the project name to **`api-lip`** if Vercel does not pick it automatically.
+4. Keep the repository root as the project root.
+5. Deploy.
+6. Vercel will provide the production `vercel.app` URL.
+
+No API key is required for the current weather implementation. If future modules need secrets, add them in **Project Settings → Environment Variables** rather than committing them to Git. Vercel requires a redeploy for changed environment variables to take effect. citeturn0search3
+
+### CLI
+
+```bash
+npm install
+npm run build
+npm test
+npx vercel
+npx vercel --prod
+```
+
+Vercel documents `vercel --prod` as the production deployment command. citeturn0search14
+
 ## Local development
 
 ```bash
@@ -89,12 +126,12 @@ npm run typecheck
 
 ```text
 my-rest-api/
-├── api/index.ts          # Vercel entrypoint
+├── api/index.ts          # Vercel serverless entrypoint
 ├── src/
 │   ├── app.ts             # App + middleware + route mounting
 │   ├── server.ts          # Local Node server
 │   ├── data.ts            # Built-in datasets
-│   ├── utils.ts            # Shared helpers
+│   ├── utils.ts           # Shared helpers
 │   └── routes/
 │       ├── jokes.ts
 │       ├── content.ts
@@ -109,7 +146,7 @@ my-rest-api/
 
 ## Roadmap
 
-The project is intentionally structured for expansion. Recommended next modules:
+The project is intentionally structured for expansion:
 
 1. `auth` — API keys, JWT and permissions
 2. `users` — developer accounts and profiles
