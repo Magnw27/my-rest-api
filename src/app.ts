@@ -7,7 +7,7 @@ import { contentRoute } from './routes/content.js';
 import { utilityRoute } from './routes/utility.js';
 import { weatherRoute } from './routes/weather.js';
 import { freeApisRoute } from './routes/free-apis.js';
-import { sandboxHtmlV2 } from './sandbox-v2.js';
+import { sandboxHtmlV3 } from './sandbox-v3.js';
 
 export const app = new Hono();
 
@@ -20,18 +20,12 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-app.get('/', (c) => c.html(sandboxHtmlV2));
-app.get('/sandbox', (c) => c.html(sandboxHtmlV2));
+app.get('/', (c) => c.html(sandboxHtmlV3));
+app.get('/sandbox', (c) => c.html(sandboxHtmlV3));
 
 app.get('/health', (c) => c.json({ success: true, status: 'healthy', uptime: process.uptime(), timestamp: new Date().toISOString() }));
 
-app.get('/docs', (c) => c.json({
-  success: true,
-  openapi: '3.0.3',
-  message: 'API documentation endpoint.',
-  sandbox: '/',
-  base: '/api/v1'
-}));
+app.get('/docs', (c) => c.json({ success: true, openapi: '3.0.3', message: 'API documentation endpoint.', sandbox: '/', base: '/api/v1' }));
 
 app.route('/api/v1/jokes', jokesRoute);
 app.route('/api/v1/content', contentRoute);
