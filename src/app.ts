@@ -7,6 +7,7 @@ import { contentRoute } from './routes/content.js';
 import { utilityRoute } from './routes/utility.js';
 import { weatherRoute } from './routes/weather.js';
 import { freeApisRoute } from './routes/free-apis.js';
+import { sandboxHtml } from './sandbox.js';
 
 export const app = new Hono();
 
@@ -19,15 +20,8 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-app.get('/', (c) => c.json({
-  success: true,
-  name: 'My REST API',
-  version: '1.1.0',
-  status: 'online',
-  description: 'Multi-purpose REST API hub for jokes, weather, content, utilities and curated free public API integrations.',
-  docs: '/docs',
-  endpoints: '/api'
-}));
+app.get('/', (c) => c.html(sandboxHtml));
+app.get('/sandbox', (c) => c.html(sandboxHtml));
 
 app.get('/health', (c) => c.json({ success: true, status: 'healthy', uptime: process.uptime(), timestamp: new Date().toISOString() }));
 
@@ -35,6 +29,7 @@ app.get('/docs', (c) => c.json({
   success: true,
   openapi: '3.0.3',
   message: 'API documentation endpoint.',
+  sandbox: '/',
   base: '/api/v1'
 }));
 
@@ -48,6 +43,7 @@ app.get('/api', (c) => c.json({
   success: true,
   version: 'v1',
   groups: ['jokes', 'content', 'utility', 'weather', 'free'],
+  sandbox: '/',
   examples: [
     '/api/v1/jokes/random',
     '/api/v1/content/quote',
