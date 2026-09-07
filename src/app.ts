@@ -7,7 +7,6 @@ import { contentRoute } from './routes/content.js';
 import { utilityRoute } from './routes/utility.js';
 import { weatherRoute } from './routes/weather.js';
 import { freeApisRoute } from './routes/free-apis.js';
-import { sandboxHtmlV3 } from './sandbox-v3.js';
 
 export const app = new Hono();
 
@@ -20,12 +19,24 @@ app.use('*', async (c, next) => {
   await next();
 });
 
-app.get('/', (c) => c.html(sandboxHtmlV3));
-app.get('/sandbox', (c) => c.html(sandboxHtmlV3));
+app.get('/', (c) => c.json({
+  success: true,
+  name: 'My REST API',
+  version: 'v1',
+  message: 'REST API is running. Use /api or /docs for API information.',
+  docs: '/docs',
+  api: '/api',
+  health: '/health'
+}));
 
 app.get('/health', (c) => c.json({ success: true, status: 'healthy', uptime: process.uptime(), timestamp: new Date().toISOString() }));
 
-app.get('/docs', (c) => c.json({ success: true, openapi: '3.0.3', message: 'API documentation endpoint.', sandbox: '/', base: '/api/v1' }));
+app.get('/docs', (c) => c.json({
+  success: true,
+  openapi: '3.0.3',
+  message: 'API documentation endpoint.',
+  base: '/api/v1'
+}));
 
 app.route('/api/v1/jokes', jokesRoute);
 app.route('/api/v1/content', contentRoute);
@@ -37,7 +48,6 @@ app.get('/api', (c) => c.json({
   success: true,
   version: 'v1',
   groups: ['jokes', 'content', 'utility', 'weather', 'free'],
-  sandbox: '/',
   examples: [
     '/api/v1/jokes/random',
     '/api/v1/content/quote',
