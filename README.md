@@ -8,20 +8,64 @@ The intended Vercel project name is **`api-lip`**, so after importing this repos
 
 `https://api-lip.vercel.app`
 
-Vercel assigns the `vercel.app` production domain from the project name; the exact URL is confirmed by Vercel after the project is created/deployed. citeturn0search8
+The exact production URL is confirmed by Vercel after the project is created and deployed.
 
 ## Features
 
 - Jokes API with categories, random selection and IDs
-- Live weather API using Open-Meteo, with forecast support
+- Live weather API using Open-Meteo
+- Curated free/public API integration hub
+- Country, Pokémon, animals, recipes, books, FX, words and IP endpoints
+- University, trivia, testing-data and random-user endpoints
+- Anime, public holidays, sunrise/sunset, Wikipedia and public GitHub repository endpoints
 - Quotes and facts API
 - Developer utilities: UUID, SHA-256 hash, Base64, colors and HTTP status codes
 - Consistent JSON response format
 - CORS, request IDs and centralized error handling
 - Zod validation for external input
-- Unit/integration tests with Vitest
 - Vercel serverless entrypoint
-- Clean route/data/util separation for future database and authentication layers
+- Provider calls isolated behind a timeout-aware upstream service
+
+## Free API Hub
+
+The project now exposes a curated collection under `/api/v1/free` rather than blindly proxying arbitrary URLs. This is intentional: a public API directory can contain hundreds or thousands of entries, but "public" does not always mean unlimited, commercial-use-permitted, stable, or free forever. The project therefore integrates providers that are useful and publicly accessible while keeping provider-specific limits and terms in mind.
+
+The catalog currently includes 20 integrations across weather, geo, games, animals, food, books, finance, words, networking, education, testing, people, anime, calendar, astronomy, knowledge, developer tools and content.
+
+### Discovery endpoints
+
+- `GET /api/v1/free/catalog` — all integrated providers
+- `GET /api/v1/free/categories` — available categories
+- `GET /api/v1/free/search?q=weather` — search the provider catalog
+
+### Integrated endpoints
+
+- `GET /api/v1/free/country/ID` — REST Countries
+- `GET /api/v1/free/pokemon/pikachu` — PokéAPI
+- `GET /api/v1/free/dog/random` — Dog CEO
+- `GET /api/v1/free/cat/fact` — Cat Facts
+- `GET /api/v1/free/meal/random` — TheMealDB
+- `GET /api/v1/free/book/search?q=javascript` — Open Library
+- `GET /api/v1/free/fx?from=USD&to=IDR` — Frankfurter
+- `GET /api/v1/free/words?q=happy` — Datamuse
+- `GET /api/v1/free/ip` — ipify
+- `GET /api/v1/free/universities?country=Indonesia` — Hipolabs Universities
+- `GET /api/v1/free/trivia?amount=10` — Open Trivia DB
+- `GET /api/v1/free/testing/posts` — JSONPlaceholder
+- `GET /api/v1/free/testing/products` — DummyJSON
+- `GET /api/v1/free/random-user` — Random User
+- `GET /api/v1/free/anime/search?q=naruto` — Jikan
+- `GET /api/v1/free/holidays/ID/2026` — Nager.Date
+- `GET /api/v1/free/sun?lat=-7.8166&lon=112.0116` — Sunrise-Sunset
+- `GET /api/v1/free/wiki/search?q=Indonesia` — Wikipedia MediaWiki API
+- `GET /api/v1/free/github/repo/Magnw27/my-rest-api` — GitHub public repository metadata
+- `GET /api/v1/free/quote` — Quotable
+
+## Weather
+
+`GET /api/v1/weather?lat=-7.8166&lon=112.0116&forecast_days=3`
+
+Weather is fetched live from Open-Meteo. Its public API does not require an API key for the current non-commercial implementation, but fair-use and licensing conditions still apply.
 
 ## Stack
 
@@ -32,64 +76,11 @@ Vercel assigns the `vercel.app` production domain from the project name; the exa
 - Node.js 20+
 - Vercel Functions
 
-## API
-
-### Production
-
-`https://api-lip.vercel.app`
-
-### System
-
-- `GET /` — API metadata
-- `GET /health` — health status
-- `GET /api` — endpoint groups
-- `GET /docs` — documentation metadata
-
-### Jokes
-
-- `GET /api/v1/jokes`
-- `GET /api/v1/jokes?type=programming&limit=5`
-- `GET /api/v1/jokes/random`
-- `GET /api/v1/jokes/random?type=general`
-- `GET /api/v1/jokes/:id`
-
-### Content
-
-- `GET /api/v1/content/quote`
-- `GET /api/v1/content/quotes?limit=10`
-- `GET /api/v1/content/fact`
-- `GET /api/v1/content/fact?category=science`
-- `GET /api/v1/content/facts?category=space&limit=10`
-
-### Utilities
-
-- `GET /api/v1/utility/uuid`
-- `GET /api/v1/utility/color`
-- `GET /api/v1/utility/status-codes`
-- `GET /api/v1/utility/hash?text=hello`
-- `GET /api/v1/utility/base64/encode?text=hello`
-- `GET /api/v1/utility/base64/decode?text=aGVsbG8=`
-
-### Weather
-
-`GET /api/v1/weather?lat=-7.8166&lon=112.0116&forecast_days=3`
-
-Weather is fetched live from Open-Meteo. No API key is required for the current implementation.
-
 ## Deploy to Vercel
 
-This repository already contains a Vercel entrypoint at `api/index.ts` and a `vercel.json` configured for the `api-lip` project name. Vercel officially supports Hono deployments and can deploy from Git or the Vercel CLI. citeturn0search0turn0search1
+This repository contains a Vercel entrypoint at `api/index.ts` and a `vercel.json` configured for the `api-lip` project name. Import the GitHub repository into Vercel, set the project name to `api-lip`, and deploy.
 
-### Recommended: GitHub import
-
-1. Open Vercel and choose **New Project**.
-2. Import `Magnw27/my-rest-api`.
-3. Set the project name to **`api-lip`** if Vercel does not pick it automatically.
-4. Keep the repository root as the project root.
-5. Deploy.
-6. Vercel will provide the production `vercel.app` URL.
-
-No API key is required for the current weather implementation. If future modules need secrets, add them in **Project Settings → Environment Variables** rather than committing them to Git. Vercel requires a redeploy for changed environment variables to take effect. citeturn0search3
+No API key is required for the currently integrated no-auth providers. If a future provider needs credentials, keep them in Vercel Environment Variables and never commit secrets to Git.
 
 ### CLI
 
@@ -100,8 +91,6 @@ npm test
 npx vercel
 npx vercel --prod
 ```
-
-Vercel documents `vercel --prod` as the production deployment command. citeturn0search14
 
 ## Local development
 
@@ -126,17 +115,20 @@ npm run typecheck
 
 ```text
 my-rest-api/
-├── api/index.ts          # Vercel serverless entrypoint
+├── api/index.ts
 ├── src/
-│   ├── app.ts             # App + middleware + route mounting
-│   ├── server.ts          # Local Node server
-│   ├── data.ts            # Built-in datasets
-│   ├── utils.ts           # Shared helpers
+│   ├── app.ts
+│   ├── server.ts
+│   ├── data.ts
+│   ├── utils.ts
+│   ├── services/
+│   │   └── upstream.ts
 │   └── routes/
 │       ├── jokes.ts
 │       ├── content.ts
 │       ├── utility.ts
-│       └── weather.ts
+│       ├── weather.ts
+│       └── free-apis.ts
 ├── tests/api.test.ts
 ├── .env.example
 ├── .gitignore
@@ -146,28 +138,27 @@ my-rest-api/
 
 ## Roadmap
 
-The project is intentionally structured for expansion:
-
-1. `auth` — API keys, JWT and permissions
-2. `users` — developer accounts and profiles
-3. `favorites` — saved jokes/quotes/facts
-4. `search` — unified content search
-5. `images` — image metadata and random image endpoints
-6. `animals` — cat/dog/random animal APIs
-7. `games` — trivia, dice, coin flip and random generators
-8. `geo` — countries, cities, timezones and coordinates
-9. `finance` — currencies, exchange-rate adapters and market snapshots
-10. `system` — metrics, versioning, rate limits and diagnostics
-11. Database layer — PostgreSQL + Drizzle when persistent data is needed
-12. OpenAPI/Swagger — generated interactive API documentation
-13. Redis/cache — upstream response caching and rate limiting
-14. GitHub Actions — lint, test, typecheck and deployment checks
+1. OpenAPI 3.1 generated specification + Swagger UI
+2. API key authentication and per-key rate limits
+3. Response caching with safe provider-specific TTLs
+4. Provider health checks and circuit breakers
+5. Structured upstream error mapping
+6. More curated integrations: astronomy, public transport, open data, dictionaries and media metadata
+7. PostgreSQL + Drizzle for persistent users/favorites/API keys
+8. Redis-compatible cache/rate-limit layer
+9. GitHub Actions for typecheck, tests and deployment checks
+10. Admin/provider dashboard
+11. Usage analytics and observability
+12. Versioned provider adapters so external API changes do not break the public API
 
 ## Design principles
 
-- Keep providers behind service modules.
+- Do not build an unrestricted open proxy.
 - Validate every user-controlled parameter.
+- Set timeouts on upstream requests.
 - Never expose secrets in source code.
+- Respect provider terms, attribution requirements and rate limits.
+- Keep providers behind service/adapter modules.
 - Return predictable JSON envelopes.
 - Keep routes thin and business logic testable.
 - Add new API groups without rewriting the core application.
