@@ -19,7 +19,13 @@ const catalog = [
   { id: 'opentdb', category: 'games', auth: false, description: 'Trivia questions.' },
   { id: 'jsonplaceholder', category: 'testing', auth: false, description: 'Fake REST resources for testing and prototyping.' },
   { id: 'dummyjson', category: 'testing', auth: false, description: 'Sample products, users, posts and other JSON datasets.' },
-  { id: 'random-user', category: 'people', auth: false, description: 'Generated fictional user profiles for development.' }
+  { id: 'random-user', category: 'people', auth: false, description: 'Generated fictional user profiles for development.' },
+  { id: 'jikan', category: 'anime', auth: false, description: 'Unofficial MyAnimeList data API.' },
+  { id: 'nager-date', category: 'calendar', auth: false, description: 'Public holidays and country date information.' },
+  { id: 'sunrise-sunset', category: 'astronomy', auth: false, description: 'Sunrise and sunset times by coordinates.' },
+  { id: 'mediawiki', category: 'knowledge', auth: false, description: 'Wikipedia/MediaWiki search and page data.' },
+  { id: 'github-public', category: 'developer', auth: false, description: 'Public GitHub repository metadata; anonymous calls are rate limited.' },
+  { id: 'quotable', category: 'content', auth: false, description: 'Random quotations and authors.' }
 ] as const;
 
 freeApisRoute.get('/catalog', (c) => c.json(apiResult(catalog, 'my-rest-api')));
@@ -48,44 +54,27 @@ freeApisRoute.get('/pokemon/:name', async (c) => {
   return c.json(apiResult(data, 'pokeapi'));
 });
 
-freeApisRoute.get('/dog/random', async (c) => {
-  const data = await upstreamJson<unknown>('https://dog.ceo/api/breeds/image/random');
-  return c.json(apiResult(data, 'dog-ceo'));
-});
-
-freeApisRoute.get('/cat/fact', async (c) => {
-  const data = await upstreamJson<unknown>('https://catfact.ninja/fact');
-  return c.json(apiResult(data, 'cat-fact'));
-});
-
-freeApisRoute.get('/meal/random', async (c) => {
-  const data = await upstreamJson<unknown>('https://www.themealdb.com/api/json/v1/1/random.php');
-  return c.json(apiResult(data, 'the-meal-db'));
-});
+freeApisRoute.get('/dog/random', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://dog.ceo/api/breeds/image/random'), 'dog-ceo')));
+freeApisRoute.get('/cat/fact', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://catfact.ninja/fact'), 'cat-fact')));
+freeApisRoute.get('/meal/random', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://www.themealdb.com/api/json/v1/1/random.php'), 'the-meal-db')));
 
 freeApisRoute.get('/book/search', async (c) => {
   const q = z.string().min(1).max(120).parse(c.req.query('q'));
-  const data = await upstreamJson<unknown>(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10`);
-  return c.json(apiResult(data, 'open-library', { query: q }));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=10`), 'open-library', { query: q }));
 });
 
 freeApisRoute.get('/fx', async (c) => {
   const from = (c.req.query('from') ?? 'EUR').toUpperCase();
   const to = (c.req.query('to') ?? 'USD').toUpperCase();
-  const data = await upstreamJson<unknown>(`https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
-  return c.json(apiResult(data, 'frankfurter'));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`), 'frankfurter'));
 });
 
 freeApisRoute.get('/words', async (c) => {
   const word = z.string().min(1).max(80).parse(c.req.query('q'));
-  const data = await upstreamJson<unknown>(`https://api.datamuse.com/words?ml=${encodeURIComponent(word)}&max=20`);
-  return c.json(apiResult(data, 'datamuse', { query: word }));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://api.datamuse.com/words?ml=${encodeURIComponent(word)}&max=20`), 'datamuse', { query: word }));
 });
 
-freeApisRoute.get('/ip', async (c) => {
-  const data = await upstreamJson<unknown>('https://api64.ipify.org?format=json');
-  return c.json(apiResult(data, 'ipify'));
-});
+freeApisRoute.get('/ip', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://api64.ipify.org?format=json'), 'ipify')));
 
 freeApisRoute.get('/universities', async (c) => {
   const name = c.req.query('name')?.trim() ?? '';
@@ -94,27 +83,52 @@ freeApisRoute.get('/universities', async (c) => {
   const params = new URLSearchParams();
   if (name) params.set('name', name);
   if (country) params.set('country', country);
-  const data = await upstreamJson<unknown>(`http://universities.hipolabs.com/search?${params}`);
-  return c.json(apiResult(data, 'universities'));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://universities.hipolabs.com/search?${params}`), 'universities'));
 });
 
 freeApisRoute.get('/trivia', async (c) => {
-  const amount = Math.min(Math.max(Number(c.req.query('amount') ?? 10), 1), 50);
-  const data = await upstreamJson<unknown>(`https://opentdb.com/api.php?amount=${amount}&type=multiple`);
-  return c.json(apiResult(data, 'opentdb'));
+  const raw = Number(c.req.query('amount') ?? 10);
+  const amount = Number.isFinite(raw) ? Math.min(Math.max(Math.floor(raw), 1), 50) : 10;
+  return c.json(apiResult(await upstreamJson<unknown>(`https://opentdb.com/api.php?amount=${amount}&type=multiple`), 'opentdb'));
 });
 
-freeApisRoute.get('/testing/posts', async (c) => {
-  const data = await upstreamJson<unknown>('https://jsonplaceholder.typicode.com/posts?_limit=10');
-  return c.json(apiResult(data, 'jsonplaceholder'));
+freeApisRoute.get('/testing/posts', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://jsonplaceholder.typicode.com/posts?_limit=10'), 'jsonplaceholder')));
+freeApisRoute.get('/testing/products', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://dummyjson.com/products?limit=10'), 'dummyjson')));
+freeApisRoute.get('/random-user', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://randomuser.me/api/'), 'random-user')));
+
+freeApisRoute.get('/anime/search', async (c) => {
+  const q = z.string().min(1).max(80).parse(c.req.query('q'));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://api.jikan.moe/v4/anime?q=${encodeURIComponent(q)}&limit=10`), 'jikan', { query: q }));
 });
 
-freeApisRoute.get('/testing/products', async (c) => {
-  const data = await upstreamJson<unknown>('https://dummyjson.com/products?limit=10');
-  return c.json(apiResult(data, 'dummyjson'));
+freeApisRoute.get('/holidays/:country/:year', async (c) => {
+  const country = c.req.param('country').toUpperCase();
+  const year = Number(c.req.param('year'));
+  if (!/^[A-Z]{2}$/.test(country) || !Number.isInteger(year) || year < 2000 || year > 2100) {
+    return c.json({ success: false, error: { code: 'INVALID_DATE_QUERY', message: 'Use an ISO country code and a year between 2000 and 2100.' } }, 400);
+  }
+  return c.json(apiResult(await upstreamJson<unknown>(`https://date.nager.at/api/v3/PublicHolidays/${year}/${country}`), 'nager-date'));
 });
 
-freeApisRoute.get('/random-user', async (c) => {
-  const data = await upstreamJson<unknown>('https://randomuser.me/api/');
-  return c.json(apiResult(data, 'random-user'));
+freeApisRoute.get('/sun', async (c) => {
+  const lat = Number(c.req.query('lat'));
+  const lon = Number(c.req.query('lon'));
+  if (!Number.isFinite(lat) || !Number.isFinite(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
+    return c.json({ success: false, error: { code: 'INVALID_COORDINATES', message: 'Provide valid lat and lon coordinates.' } }, 400);
+  }
+  return c.json(apiResult(await upstreamJson<unknown>(`https://api.sunrise-sunset.org/json?lat=${lat}&lng=${lon}&formatted=0`), 'sunrise-sunset'));
 });
+
+freeApisRoute.get('/wiki/search', async (c) => {
+  const q = z.string().min(1).max(120).parse(c.req.query('q'));
+  const params = new URLSearchParams({ action: 'query', list: 'search', srsearch: q, format: 'json', origin: '*' });
+  return c.json(apiResult(await upstreamJson<unknown>(`https://en.wikipedia.org/w/api.php?${params}`), 'mediawiki', { query: q }));
+});
+
+freeApisRoute.get('/github/repo/:owner/:repo', async (c) => {
+  const owner = encodeURIComponent(c.req.param('owner'));
+  const repo = encodeURIComponent(c.req.param('repo'));
+  return c.json(apiResult(await upstreamJson<unknown>(`https://api.github.com/repos/${owner}/${repo}`, { headers: { 'User-Agent': 'my-rest-api' } }), 'github-public'));
+});
+
+freeApisRoute.get('/quote', async (c) => c.json(apiResult(await upstreamJson<unknown>('https://api.quotable.io/random'), 'quotable')));
